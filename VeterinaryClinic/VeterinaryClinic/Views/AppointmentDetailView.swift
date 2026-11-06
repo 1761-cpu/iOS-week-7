@@ -14,7 +14,7 @@ struct AppointmentDetailView: View {
                 EmptyHint(systemImage: "questionmark.folder", text: "Appointment not found.")
             }
         }
-        .navigationTitle("Appointment")
+        .navigationTitle("APPOINTMENT")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .topBarTrailing) { RolePicker() } }
         .sheet(isPresented: $showEdit) {
@@ -143,7 +143,7 @@ struct WorkflowSection: View {
     private func run(_ success: String, _ action: () throws -> Void) {
         onMessage(manager.attempt {
             try action()
-            return "✅ " + success
+            return "Done " + success
         })
     }
 }
@@ -206,21 +206,21 @@ struct ScheduleSection: View {
     private func reschedule() {
         onMessage(manager.attempt {
             try appointment.reschedule(to: newDate, by: manager.currentRole)
-            return "✅ Rescheduled to \(newDate.dateTimeText)."
+            return "Rescheduled to \(newDate.dateTimeText)."
         })
     }
 
     private func request(_ kind: ChangeRequestKind) {
         onMessage(manager.attempt {
             try appointment.submitRequest(kind, by: manager.currentRole)
-            return "✅ Request submitted: \(kind.title)."
+            return "Request submitted: \(kind.title)."
         })
     }
 
     private func resolve(_ approve: Bool) {
         onMessage(manager.attempt {
             try appointment.resolveRequest(approve: approve, by: manager.currentRole)
-            return approve ? "✅ Request approved." : "✅ Request rejected."
+            return approve ? "Request approved." : "Request rejected."
         })
     }
 
@@ -228,7 +228,7 @@ struct ScheduleSection: View {
         onMessage(manager.attempt {
             try appointment.reopenCompletedVisit(reason: reason, by: manager.currentRole)
             reason = ""
-            return "✅ Visit reopened through the amendment procedure."
+            return "Visit reopened through the amendment procedure."
         })
     }
 }
@@ -261,7 +261,7 @@ struct ServicesSection: View {
     private func add(_ s: ServiceItem) {
         onMessage(manager.attempt {
             try appointment.addService(s, by: manager.currentRole)
-            return "✅ Added \(s.name)."
+            return "Added \(s.name)."
         })
     }
 }
@@ -299,21 +299,21 @@ struct PricingSection: View {
         onMessage(manager.attempt {
             let f = try parseAmount(feeText, field: appointment.feeLabel)
             try appointment.updateBaseFee(to: f, by: manager.currentRole)
-            return "✅ \(appointment.feeLabel) updated to \(f.vnd)."
+            return "\(appointment.feeLabel) updated to \(f.vnd)."
         })
     }
 
     private func apply(_ p: Promotion) {
         onMessage(manager.attempt {
             try appointment.applyPromotion(p, by: manager.currentRole)
-            return "✅ Promotion \(p.code) applied."
+            return "Promotion \(p.code) applied."
         })
     }
 
     private func remove() {
         onMessage(manager.attempt {
             try appointment.removePromotion(by: manager.currentRole)
-            return "✅ Promotion removed."
+            return "Promotion removed."
         })
     }
 }
@@ -350,7 +350,7 @@ struct VaccinationSection: View {
     private func select(_ v: Vaccine) {
         onMessage(manager.attempt {
             try appointment.selectVaccine(v, by: manager.currentRole)
-            return "✅ Vaccine set to \(v.name)."
+            return "Vaccine set to \(v.name)."
         })
     }
 }
@@ -412,9 +412,9 @@ struct EditNotesView: View {
     private func save() {
         let result = manager.attempt {
             try appointment.updateNotes(notes, by: manager.currentRole)
-            return "✅ Notes updated."
+            return "Notes updated."
         }
-        if result.hasPrefix("⛔️") {
+        if result.hasPrefix("Rejected: ") {
             message = result
         } else {
             dismiss()

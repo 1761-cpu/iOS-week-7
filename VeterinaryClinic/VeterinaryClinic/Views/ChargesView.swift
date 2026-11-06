@@ -13,7 +13,9 @@ struct ChargesView: View {
                               subtitle: "\(manager.lockedCount)/\(manager.appointments.count) locked · \(manager.totalEstimated.vnd)",
                               value: String(format: "%.2f", manager.totalEstimated / 1_000_000),
                               valueLabel: "million VND",
-                              color: Theme.charges)
+                              color: Theme.charges,
+                              customBackgroundColor: .white.opacity(0.85)
+                )
 
                 List {
                     ForEach(list) { a in
@@ -33,7 +35,7 @@ struct ChargesView: View {
                     RolePicker(color: Theme.charges)
                 }
             }
-            .screenBackground("chargeView", fit: true, topOffset: 210)
+            .screenBackground("chargeView", fit: true, topOffset: 220)
         }
     }
 }

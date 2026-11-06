@@ -1,6 +1,5 @@
 import SwiftUI
 
-// MARK: - Color & Theme
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -13,7 +12,7 @@ extension Color {
 
 enum Theme {
     static let appointments = Color(hex: "#0D9488")
-    static let charges      = Color(hex: "#7C3AED")
+    static let charges      = Color(hex: "#DAA520")
     static let routine      = Color(hex: "#2563EB")
     static let vaccination  = Color(hex: "#D97706")
     static let emergency    = Color(hex: "#DC2626")

@@ -1,55 +1,5 @@
 import SwiftUI
 
-// MARK: - Color & Theme
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let r = (int >> 16) & 0xFF, g = (int >> 8) & 0xFF, b = int & 0xFF
-        self.init(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: 1)
-    }
-}
-
-enum Theme {
-    static let appointments = Color(hex: "#0D9488")
-    static let charges      = Color(hex: "#7C3AED")
-    static let routine      = Color(hex: "#2563EB")
-    static let vaccination  = Color(hex: "#D97706")
-    static let emergency    = Color(hex: "#DC2626")
-    static let danger       = Color(hex: "#DC2626")
-    static let success      = Color(hex: "#16A34A")
-    static let warning      = Color(hex: "#D97706")
-    static let cardFill     = Color(.secondarySystemGroupedBackground)
-
-    static func color(for type: AppointmentType) -> Color {
-        switch type {
-        case .routine: return routine
-        case .vaccination: return vaccination
-        case .emergency: return emergency
-        }
-    }
-
-    static func color(for status: AppointmentStatus) -> Color {
-        switch status {
-        case .booked: return .gray
-        case .confirmed: return routine
-        case .checkedIn: return warning
-        case .completed: return success
-        case .cancelled: return danger
-        }
-    }
-
-    static func color(for role: UserRole) -> Color {
-        switch role {
-        case .owner: return .gray
-        case .receptionist: return warning
-        case .vet: return appointments
-        case .manager: return success
-        }
-    }
-}
-
 // MARK: - Formatting helpers
 extension Double {
     var vnd: String {
@@ -82,21 +32,32 @@ extension View {
 // MARK: - Card row modifier
 struct ListRowCard: ViewModifier {
     var fill: Color = Theme.cardFill
+    var tint: Color? = nil
+    
     func body(content: Content) -> some View {
         content
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(RoundedRectangle(cornerRadius: 12).fill(fill))
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(fill)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(tint ?? .clear)              
+                    )
+            )
             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
     }
 }
 extension View {
-    func listRowCard(fill: Color = Theme.cardFill) -> some View { modifier(ListRowCard(fill: fill)) }
+    func listRowCard(fill: Color = Theme.cardFill, tint: Color? = nil) -> some View {
+        modifier(ListRowCard(fill: fill, tint: tint))
+    }
 }
 
-// MARK: - Small components
+// MARK: - IDChip
 struct IDChip: View {
     let text: String
     var color: Color
@@ -109,6 +70,7 @@ struct IDChip: View {
     }
 }
 
+// MARK: - StatusPill
 struct StatusPill: View {
     let text: String
     let color: Color
@@ -121,6 +83,7 @@ struct StatusPill: View {
     }
 }
 
+// MARK: - IconBadge
 struct IconBadge: View {
     let systemName: String
     let color: Color
@@ -134,6 +97,7 @@ struct IconBadge: View {
     }
 }
 
+// MARK: - InfoRow
 struct InfoRow: View {
     let label: String
     let value: String
@@ -147,6 +111,7 @@ struct InfoRow: View {
     }
 }
 
+// MARK: - EmptyHint
 struct EmptyHint: View {
     let systemImage: String
     let text: String
@@ -161,6 +126,7 @@ struct EmptyHint: View {
     }
 }
 
+// MARK: - SectionTag
 struct SectionTag: View {
     let text: String
     var systemImage: String? = nil
@@ -182,6 +148,7 @@ struct SectionTag: View {
     }
 }
 
+// MARK: - SearchField
 struct SearchField: View {
     let placeholder: String
     @Binding var text: String
@@ -215,21 +182,7 @@ func parseInt(_ text: String, field: String) throws -> Int {
     return v
 }
 
-// MARK: - Role picker (vai trò đang thao tác) - dạng icon trong TopBar
-struct RolePicker: View {
-    @EnvironmentObject var manager: ClinicManager
-    var color: Color = Theme.appointments
-    var body: some View {
-        Menu {
-            Picker("Role", selection: $manager.currentRole) {
-                ForEach(UserRole.allCases) { r in Text(r.rawValue).tag(r) }
-            }
-        } label: {
-            Image(systemName: "person.badge.key.fill").font(.title3).foregroundColor(color)
-        }
-    }
-}
-
+// MARK: - RoleBanner
 struct RoleBanner: View {
     @EnvironmentObject var manager: ClinicManager
     var body: some View {
@@ -247,6 +200,7 @@ struct RoleBanner: View {
     }
 }
 
+// MARK: - TagChip
 struct TagChip: View {
     let text: String
     let color: Color
@@ -262,7 +216,7 @@ struct TagChip: View {
     }
 }
 
-// MARK: - FLOW LAYOUT (tự xuống dòng, copy từ bài School Management)
+// MARK: - FlowLayout
 struct FlowLayout: Layout {
     var spacing: CGFloat = 6
 
@@ -299,6 +253,7 @@ struct FlowLayout: Layout {
     }
 }
 
+// MARK: - SummaryBanner
 struct SummaryBanner: View {
     let icon: String
     let title: String
@@ -306,6 +261,8 @@ struct SummaryBanner: View {
     let value: String
     let valueLabel: String
     let color: Color
+
+    var customBackgroundColor: Color? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -329,129 +286,8 @@ struct SummaryBanner: View {
             }
         }
         .padding(12)
-        .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+        .background(customBackgroundColor ?? color.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.3), lineWidth: 1))
         .padding(.horizontal, 16)
-    }
-}
-
-// ==========================================
-// MARK: - BACKGROUND (giống bài tham khảo)
-// ==========================================
-extension View {
-    /// Nếu chưa thêm ảnh vào Assets thì tự dùng nền hệ thống, không bị xám.
-    func screenBackground(_ imageName: String, opacity: Double = 0.3, fit: Bool = false, topOffset: CGFloat = 0) -> some View {
-        self.scrollContentBackground(.hidden)
-            .background {
-                if UIImage(named: imageName) == nil {
-                    Color(.systemGroupedBackground).ignoresSafeArea()
-                } else {
-                    GeometryReader { geo in
-                        ZStack(alignment: .top) {
-                            Image(imageName)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .scaleEffect(fit ? 1.15 : 1)
-                                .blur(radius: fit ? 30 : 0)
-                                .clipped()
-
-                            if fit {
-                                Image(imageName)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: geo.size.width)
-                                    .mask(
-                                        LinearGradient(stops: [
-                                            .init(color: .clear, location: 0),
-                                            .init(color: .black, location: 0.08),
-                                            .init(color: .black, location: 0.92),
-                                            .init(color: .clear, location: 1)
-                                        ], startPoint: .top, endPoint: .bottom)
-                                    )
-                                    .padding(.top, topOffset)
-                            }
-                        }
-                        .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
-                        .clipped()
-                        .overlay(Color.gray.opacity(opacity))
-                    }
-                    .ignoresSafeArea()
-                }
-            }
-    }
-}
-
-// ==========================================
-// MARK: - CUSTOM TOP BAR (copy từ bài tham khảo)
-// ==========================================
-struct TitleBadge: View {
-    let text: String
-    let color: Color
-    let radius: CGFloat
-    let glassTint: Color
-    let rim: CGFloat = 6
-
-    var body: some View {
-        let inner = RoundedRectangle(cornerRadius: radius)
-        let outer = RoundedRectangle(cornerRadius: radius + rim)
-
-        Text(text)
-            .font(.system(size: 25, weight: .bold, design: .monospaced))
-            .foregroundColor(color)
-            .lineLimit(1)
-            .fixedSize()
-            .padding(.horizontal, 14)
-            .padding(.vertical, 2)
-            .background(Color.white.opacity(0.75), in: inner)
-            .padding(rim)
-            .glassEffect(.regular.tint(glassTint), in: outer)
-    }
-}
-
-struct TopBar<Leading: View, Trailing: View>: View {
-    let title: String
-    var color: Color = .black
-    var radius: CGFloat = 12
-    var glassTint: Color = .blue.opacity(0.9)
-    var topPadding: CGFloat = 0
-    var bottomPadding: CGFloat = 12
-    var showTrailing = true
-    let leading: Leading
-    let trailing: Trailing
-
-    init(title: String, color: Color = .black, radius: CGFloat = 12, glassTint: Color = .blue.opacity(0.9), topPadding: CGFloat = 0, bottomPadding: CGFloat = 12, @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
-        self.title = title
-        self.color = color
-        self.radius = radius
-        self.glassTint = glassTint
-        self.topPadding = topPadding
-        self.bottomPadding = bottomPadding
-        self.leading = leading()
-        self.trailing = trailing()
-    }
-
-    var body: some View {
-        HStack {
-            leading
-            TitleBadge(text: title, color: color, radius: radius, glassTint: glassTint)
-            Spacer()
-            if showTrailing {
-                HStack(spacing: 16) { trailing }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .glassEffect(.regular, in: Capsule())
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, topPadding)
-        .padding(.bottom, bottomPadding)
-    }
-}
-
-// Chỉ có nút bên phải (Menu/Add), không có nút Back
-extension TopBar where Leading == EmptyView {
-    init(title: String, color: Color = .black, radius: CGFloat = 12, glassTint: Color = .blue.opacity(0.9), topPadding: CGFloat = 0, bottomPadding: CGFloat = 12, @ViewBuilder trailing: () -> Trailing) {
-        self.init(title: title, color: color, radius: radius, glassTint: glassTint, topPadding: topPadding, bottomPadding: bottomPadding, leading: { EmptyView() }, trailing: trailing)
     }
 }

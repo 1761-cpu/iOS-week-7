@@ -14,7 +14,7 @@ struct MemberDetailView: View {
                 EmptyHint(systemImage: "questionmark.folder", text: "Membership not found.")
             }
         }
-        .navigationTitle("Membership")
+        .navigationTitle("MEMBERSHIP")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .topBarTrailing) { RolePicker() } }
         .sheet(isPresented: $showEdit) {

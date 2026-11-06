@@ -34,7 +34,10 @@ struct AppointmentsView: View {
                         } label: {
                             AppointmentCard(appointment: a)
                         }
-                        .listRowCard(fill: a.type == .emergency ? Theme.emergency.opacity(0.08) : Theme.cardFill)
+                        .listRowCard(
+                            fill: Theme.cardFill,
+                            tint: a.type == .emergency ? Theme.emergency.opacity(0.12) : nil
+                        )
                     }
                 }
                 .listStyle(.plain)
